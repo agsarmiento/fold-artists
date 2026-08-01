@@ -517,6 +517,13 @@ html[data-theme="light"] .kpi-tile--accent {
   cursor: grab;
 }
 
+.graph-card:fullscreen {
+  background: var(--surface-0);
+  height: 100vh;
+  border-radius: 0;
+  padding: 0;
+}
+
 .graph-card svg:active { cursor: grabbing; }
 
 .graph-legend {

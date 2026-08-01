@@ -656,6 +656,48 @@ function drawNodeGraph() {
   });
   toolbar.appendChild(tooltipBtn);
 
+  const fsBtn = document.createElement('button');
+  fsBtn.className = 'graph-btn';
+  fsBtn.textContent = 'Fullscreen';
+  fsBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      container.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  });
+  toolbar.appendChild(fsBtn);
+
+  const fitToView = (newW, newH) => {
+    const pad = 48;
+    const xs = nodes.map(n => n.x), ys = nodes.map(n => n.y);
+    const x0 = Math.min(...xs) - 40, x1 = Math.max(...xs) + 40;
+    const y0 = Math.min(...ys) - 40, y1 = Math.max(...ys) + 40;
+    const scale = Math.min((newW - pad * 2) / (x1 - x0), (newH - pad * 2) / (y1 - y0), 3);
+    const tx = (newW - (x0 + x1) * scale) / 2;
+    const ty = (newH - (y0 + y1) * scale) / 2;
+    svg.transition().duration(400)
+      .call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+  };
+
+  container.addEventListener('fullscreenchange', () => {
+    const isFs = !!document.fullscreenElement;
+    fsBtn.textContent = isFs ? 'Exit fullscreen' : 'Fullscreen';
+
+    // Tooltip must be inside the fullscreen element to be visible
+    if (isFs) {
+      container.appendChild(tooltipEl);
+    } else {
+      document.body.appendChild(tooltipEl);
+      hideTooltip();
+    }
+
+    const newW = container.clientWidth;
+    const newH = container.clientHeight - 40;
+    svg.attr('width', newW).attr('height', newH);
+    fitToView(newW, newH);
+  });
+
   // ── SVG canvas ───────────────────────────────────────────────────────────
   const W = container.clientWidth;
   const H = container.clientHeight - 40; // subtract toolbar height
@@ -673,7 +715,9 @@ function drawNodeGraph() {
   svg.call(zoomBehavior);
 
   resetBtn.addEventListener('click', () => {
-    svg.transition().duration(500).call(zoomBehavior.transform, d3.zoomIdentity);
+    const cw = container.clientWidth;
+    const ch = container.clientHeight - 40;
+    fitToView(cw, ch);
   });
 
   // ── Helpers ───────────────────────────────────────────────────────────────
